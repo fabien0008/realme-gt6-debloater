@@ -32,11 +32,14 @@ This project includes two main scripts:
     adb devices
     ```
 
-4.  Run the debloating script:
+4.  Run the debloating script (default = full profile):
     ```bash
-    python3 debloat_gt6.py
+    python3 debloat_gt6.py            # full (safe + advanced) packages
+    python3 debloat_gt6.py -m         # minimal profile (safe only)
+    python3 debloat_gt6.py -n         # dry-run, show what would happen
+    python3 debloat_gt6.py -l         # write a timestamped log file
     ```
-    The script will display a list of packages to be removed and ask for a final confirmation before proceeding.
+    The script shows device information, lists packages that are *actually* still installed, skips the rest, and then asks for confirmation before acting.
 
 5.  (Optional) To undo all changes, run the reinstallation script:
     ```bash
