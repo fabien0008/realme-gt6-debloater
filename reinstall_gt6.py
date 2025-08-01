@@ -19,7 +19,18 @@ PACKAGES_TO_REINSTALL = [
     "com.realmecomm.app", "com.heytap.pictorial", "com.oppo.gamecenter",
     "com.coloros.gamespaceui", "com.coloros.phonemanager", "com.coloros.filemanager",
     "com.coloros.weather2", "com.coloros.soundrecorder", "com.heytap.themestore",
-    "com.heytap.usercenter", "com.coloros.calculator", "com.coloros.alarmclock"
+    "com.heytap.usercenter", "com.coloros.calculator", "com.coloros.alarmclock",
+
+    # Xiaomi / Mi leftovers (matches debloat script)
+    "com.mi.android.globalFileexplorer", "com.mi.global.shop", "com.miui.videoplayer",
+    "com.mi.globalbrowser", "com.mi.global.bbs", "com.xiaomi.smarthome", "com.xiaomi.hm.health",
+    "com.xiaomi.router",
+
+    # Additional Realme / ColorOS components (advanced optional set)
+    "com.oplus.themestore", "com.oplus.wallpapers", "com.coloros.childrenspace",
+    "com.coloros.translate", "com.coloros.translate.engine", "com.oplus.weather.service",
+    "com.oplus.safecenter", "com.oplus.screenrecorder", "com.oplus.statistics.rom",
+    "com.oplus.smartengine", "com.oplus.operationManual", "com.oplus.beaconlink"
 ]
 
 def check_adb_device():

@@ -37,6 +37,16 @@ SAFE_PACKAGES = [
     "com.realmestore.app",          # Realme Store App
     "com.realmecomm.app",           # Realme Community App
     "com.heytap.pictorial"          # Lockscreen Magazine
+
+    # --- Xiaomi / Mi leftovers that can safely be removed ---
+    "com.mi.android.globalFileexplorer", # Mi File Manager
+    "com.mi.global.shop",               # Mi Store
+    "com.miui.videoplayer",             # Mi Video
+    "com.mi.globalbrowser",             # Mi Browser
+    "com.mi.global.bbs",                # Mi Community
+    "com.xiaomi.smarthome",             # Xiaomi Home / Mi Home
+    "com.xiaomi.hm.health",             # Mi Fitness
+    "com.xiaomi.router"                 # Mi Wi-Fi / Mi Router
 ]
 
 # Category 2: Advanced User Choices (You confirmed you want these removed)
@@ -51,6 +61,20 @@ ADVANCED_PACKAGES = [
     "com.heytap.usercenter",        # HeyTap Account Center
     "com.coloros.calculator",       # Default Calculator
     "com.coloros.alarmclock"        # Default Clock/Alarm app. Ensure you have Google Clock or other alternative.
+
+    # --- Additional Realme / ColorOS components (non-critical) ---
+    "com.oplus.themestore",         # Updated Theme Store package name
+    "com.oplus.wallpapers",         # Stock & online wallpapers
+    "com.coloros.childrenspace",    # Kids mode
+    "com.coloros.translate",        # Realme Translate front-end
+    "com.coloros.translate.engine", # Realme Translate engine
+    "com.oplus.weather.service",    # Weather backend
+    "com.oplus.safecenter",         # Optimizer / Phone Manager
+    "com.oplus.screenrecorder",     # Built-in screen recorder
+    "com.oplus.statistics.rom",     # Telemetry service
+    "com.oplus.smartengine",        # Smart Engine (analytics)
+    "com.oplus.operationManual",    # Interactive user manual
+    "com.oplus.beaconlink"          # Device-to-device discovery
 ]
 
 # Master list of all packages to be uninstalled
