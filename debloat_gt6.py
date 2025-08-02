@@ -69,7 +69,7 @@ ADVANCED_PACKAGES = [
     "com.coloros.translate",        # Realme Translate front-end
     "com.coloros.translate.engine", # Realme Translate engine
     "com.oplus.weather.service",    # Weather backend
-    "com.oplus.safecenter",         # Optimizer / Phone Manager
+    # "com.oplus.safecenter",         # CRITICAL: Required by SystemUI - DO NOT REMOVE
     "com.oplus.screenrecorder",     # Built-in screen recorder
     "com.oplus.statistics.rom",     # Telemetry service
     "com.oplus.smartengine",        # Smart Engine (analytics)
