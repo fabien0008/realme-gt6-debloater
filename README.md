@@ -59,9 +59,9 @@ This affects **all Oplus devices** (Realme, OnePlus, Oppo) running these OS vers
 
 The script automates a community-discovered workaround ([Reddit](https://www.reddit.com/r/oneplus/comments/1p33lfj/), [XDA](https://xdaforums.com/t/4655464/page-13)):
 
-1. Opens **Settings > Home screen settings > Transition animations**
-2. Tapping that setting triggers an OS bug that kicks the UI to the stock launcher home screen (instead of showing the actual setting)
-3. Opens the **recents view**, finds the **System Launcher** card, and **swipes it away**
+1. Directly launches the stock System Launcher via `am start`
+2. Opens the **recents view** and locates the **System Launcher** card
+3. Swipes the card into view (if needed) and **swipes it up to dismiss**
 4. Returns to the third-party launcher home screen — lag is gone
 
 ### Limitations

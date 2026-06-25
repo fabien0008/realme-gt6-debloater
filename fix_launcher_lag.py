@@ -19,11 +19,9 @@ import time
 #             will no longer be necessary.
 #
 # What this script does (Reddit / XDA workaround, automated via ADB):
-#   1. Opens Settings > Home screen settings > Transition animations.
-#   2. Tapping that setting triggers an OS bug that kicks the user to the
-#      stock System Launcher home screen instead of showing the setting.
-#   3. The script then opens the recents view, locates the System Launcher
-#      card, and swipes it away.
+#   1. Directly launches the stock System Launcher via am start.
+#   2. Opens the recents view and locates the System Launcher card.
+#   3. Swipes the card left into view (if needed) and swipes it up to dismiss.
 #   4. This stops the stock launcher from intercepting home-button presses.
 #
 # Limitations:
@@ -96,40 +94,29 @@ def get_nav_mode(serial):
     return None
 
 
-def get_ui_bounds(serial, text):
-    """Dump UI hierarchy and return (cx, cy) center of element matching text."""
+def get_ui_texts(serial):
+    """Dump UI hierarchy and return list of (text, cx, cy, x1, y1, x2, y2)."""
+    import re
     _shell(serial, 'uiautomator', 'dump', '/sdcard/ui_dump.xml')
     cp = _shell(serial, 'cat', '/sdcard/ui_dump.xml')
     if cp.returncode != 0:
-        return None
-
-    import re
-    # Find element with matching text and extract bounds
-    pattern = rf'text="{re.escape(text)}"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"'
-    match = re.search(pattern, cp.stdout)
-    if match:
-        x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
-        return ((x1 + x2) // 2, (y1 + y2) // 2)
-    return None
+        return []
+    results = []
+    for m in re.finditer(
+        r'<node[^>]*text="([^"]+)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', cp.stdout
+    ):
+        text = m.group(1)
+        x1, y1, x2, y2 = int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5))
+        results.append((text, (x1 + x2) // 2, (y1 + y2) // 2, x1, y1, x2, y2))
+    return results
 
 
 def find_system_launcher_in_recents(serial):
-    """Look for the System Launcher card in recents and return its center coords."""
-    # Try common label variations
-    for label in ["System La...", "System Launcher", "System La…"]:
-        coords = get_ui_bounds(serial, label)
-        if coords:
-            return coords
-
-    # Fallback: look for anything from com.android.launcher in the UI
-    _shell(serial, 'uiautomator', 'dump', '/sdcard/ui_dump.xml')
-    cp = _shell(serial, 'cat', '/sdcard/ui_dump.xml')
-    if cp.returncode == 0:
-        import re
-        match = re.search(r'text="[^"]*[Ss]ystem\s*[Ll]a[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', cp.stdout)
-        if match:
-            x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
-            return ((x1 + x2) // 2, (y1 + y2) // 2)
+    """Look for the System Launcher card in recents and return (cx, cy, x1)."""
+    import re
+    for text, cx, cy, x1, y1, x2, y2 in get_ui_texts(serial):
+        if re.search(r'[Ss]ystem\s*[Ll]a', text):
+            return (cx, cy, x1)
     return None
 
 
@@ -178,78 +165,41 @@ def main():
         print(f"\n{Colors.YELLOW}System Launcher is currently disabled. Re-enabling it first...{Colors.END}")
         _shell(serial, 'pm', 'enable', 'com.android.launcher')
 
-    print(f"\n{Colors.BOLD}Step 1/4:{Colors.END} Opening Home screen settings...")
-    # Navigate to Home screen settings where "Transition animations" lives
-    _shell(serial, 'am', 'start', '-a', 'android.intent.action.MAIN',
-           '-n', 'com.android.launcher/com.android.launcher.SettingsActivity')
-    time.sleep(1)
-
-    # If the above doesn't work, try via system settings search
-    # Open Settings and search for "Transition animations"
-    _shell(serial, 'am', 'start', '-a', 'android.settings.SETTINGS')
-    time.sleep(1)
-
-    # Navigate to: Home Screen, Lock screen & style > Home screen settings
-    coords = get_ui_bounds(serial, "Transition animations")
-    if not coords:
-        # Try navigating through settings manually
-        _shell(serial, 'am', 'start', '-a', 'android.settings.SETTINGS')
-        time.sleep(1)
-        hs_coords = get_ui_bounds(serial, "Home screen, Lock screen & style")
-        if hs_coords:
-            _shell(serial, 'input', 'tap', str(hs_coords[0]), str(hs_coords[1]))
-            time.sleep(1)
-            hss_coords = get_ui_bounds(serial, "Home screen settings")
-            if hss_coords:
-                _shell(serial, 'input', 'tap', str(hss_coords[0]), str(hss_coords[1]))
-                time.sleep(1)
-        coords = get_ui_bounds(serial, "Transition animations")
-
-    if not coords:
-        print(f"{Colors.RED}Error: Could not find 'Transition animations' setting.")
-        print(f"Try navigating manually to: Settings > Home Screen, Lock screen & style")
-        print(f"> Home screen settings > Transition animations{Colors.END}")
-        sys.exit(1)
-
-    print(f"{Colors.BOLD}Step 2/4:{Colors.END} Tapping 'Transition animations' to trigger stock launcher...")
-    _shell(serial, 'input', 'tap', str(coords[0]), str(coords[1]))
+    print(f"\n{Colors.BOLD}Step 1/3:{Colors.END} Launching stock System Launcher...")
+    _shell(serial, 'am', 'start', '-n', 'com.android.launcher/com.android.launcher.Launcher')
     time.sleep(1.5)
 
-    # Verify we landed on the stock launcher (not the actual setting screen)
     cp = _shell(serial, 'dumpsys', 'activity', 'activities')
     if 'com.android.launcher/.Launcher' not in cp.stdout:
-        print(f"{Colors.YELLOW}Note: The stock launcher may not have been triggered.")
-        print(f"If you see the Transition animations setting screen instead,")
-        print(f"this bug may already be fixed in your OS version.{Colors.END}")
+        print(f"{Colors.YELLOW}Warning: Stock launcher may not have started. Trying fallback...{Colors.END}")
+        _shell(serial, 'am', 'start', '-a', 'android.intent.action.MAIN',
+               '-n', 'com.android.launcher/com.android.launcher.Launcher')
+        time.sleep(1.5)
 
-    print(f"{Colors.BOLD}Step 3/4:{Colors.END} Opening recents and dismissing System Launcher...")
+    print(f"{Colors.BOLD}Step 2/3:{Colors.END} Opening recents and dismissing System Launcher...")
     _shell(serial, 'input', 'keyevent', 'KEYCODE_APP_SWITCH')
-    time.sleep(1)
+    time.sleep(1.5)
 
-    # Find and swipe away the System Launcher card
     launcher_coords = find_system_launcher_in_recents(serial)
 
     if launcher_coords:
-        # First make sure the card is centered (tap on it or swipe to it)
-        _shell(serial, 'input', 'tap', str(launcher_coords[0]), str(launcher_coords[1]))
-        time.sleep(0.5)
+        cx, cy, x1 = launcher_coords
+        # If the card is at the screen edge, swipe left to bring it into view
+        screen_mid = 540
+        if x1 > screen_mid:
+            _shell(serial, 'input', 'swipe', '900', '800', '200', '800', '300')
+            time.sleep(1)
+            launcher_coords = find_system_launcher_in_recents(serial)
 
-        # If the card isn't in the center, swipe left in recents to find it
-        _shell(serial, 'input', 'keyevent', 'KEYCODE_APP_SWITCH')
-        time.sleep(1)
-
-    # Try to find it again in recents
-    launcher_coords = find_system_launcher_in_recents(serial)
     if not launcher_coords:
         # Swipe left in recents to look for it
-        _shell(serial, 'input', 'swipe', '800', '800', '200', '800', '300')
-        time.sleep(0.5)
+        _shell(serial, 'input', 'swipe', '900', '800', '200', '800', '300')
+        time.sleep(1)
         launcher_coords = find_system_launcher_in_recents(serial)
 
     if launcher_coords:
-        # Swipe up aggressively to dismiss
-        cx = str(launcher_coords[0])
-        _shell(serial, 'input', 'swipe', cx, '800', cx, '0', '150')
+        cx, cy, _ = launcher_coords
+        _shell(serial, 'input', 'swipe', str(cx), '800', str(cx), '0', '150')
         time.sleep(0.5)
         print(f"{Colors.GREEN}System Launcher card dismissed from recents.{Colors.END}")
     else:
@@ -257,7 +207,7 @@ def main():
         print(f"Please manually swipe away the 'System Launcher' card from recents.{Colors.END}")
         input("Press Enter once done...")
 
-    print(f"{Colors.BOLD}Step 4/4:{Colors.END} Returning to home screen...")
+    print(f"{Colors.BOLD}Step 3/3:{Colors.END} Returning to home screen...")
     _shell(serial, 'input', 'keyevent', 'KEYCODE_HOME')
     time.sleep(0.5)
 
