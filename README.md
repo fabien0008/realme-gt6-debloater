@@ -59,15 +59,16 @@ This affects **all Oplus devices** (Realme, OnePlus, Oppo) running these OS vers
 
 The script automates a community-discovered workaround ([Reddit](https://www.reddit.com/r/oneplus/comments/1p33lfj/), [XDA](https://xdaforums.com/t/4655464/page-13)):
 
-1. Directly launches the stock System Launcher via `am start`
-2. Opens the **recents view** and locates the **System Launcher** card
-3. Swipes the card into view (if needed) and **swipes it up to dismiss**
-4. Returns to the third-party launcher home screen — lag is gone
+1. Wakes the device and dismisses the keyguard for reliable UI automation
+2. Launches the stock System Launcher via `am start`
+3. Opens the **recents view** and locates the **System Launcher** card
+4. Swipes the card into view (if needed) and **swipes it up to dismiss**
+5. Returns to the third-party launcher home screen — lag is gone
 
 ### Limitations
 
 - **3-button navigation only** — gesture navigation lag is NOT fixed by this workaround
-- **Must be repeated after every reboot** or whenever the stock launcher is inadvertently started
+- **Must be repeated after every reboot** — the stock launcher activity restarts on boot
 - The stock launcher package cannot be fully disabled because the recents/multitask view (`com.android.quickstep.RecentsActivity`) is bundled inside it
 
 ### Usage
@@ -77,6 +78,16 @@ python3 fix_launcher_lag.py
 ```
 
 Make sure your third-party launcher is already set as default in **Settings > Default Apps** before running.
+
+### Persistent automation (recommended)
+
+For convenience across reboots, install **MacroDroid** from the Play Store, then run:
+
+```bash
+python3 fix_launcher_lag.py --setup-persist
+```
+
+This grants MacroDroid the permissions it needs and prints step-by-step instructions to create a boot-triggered macro that automatically dismisses the stock launcher after each reboot.
 
 ### When will this be fixed permanently?
 
